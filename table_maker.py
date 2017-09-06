@@ -2,7 +2,7 @@ from async_db import DBPreProcess
 from random import random
 import pandas as pd
 from dask.delayed import delayed
-
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 CREDENTIALS = {
     'host': '127.0.0.1',
@@ -23,7 +23,7 @@ class One(DBPreProcess):
     def __init__(self, table):
         self.TABLE_ALIAS = table
         super().__init__(credentials=CREDENTIALS)
-        self.data_set = make_df("ONE", 1000)
+        self.data_set = make_df("ONE", 10000)
 
 
 class Two(DBPreProcess):
@@ -35,14 +35,32 @@ class Two(DBPreProcess):
         self.data_set = make_df("TWO", 20)
 
 
+def to_db(i):
+    data = One(str(i))
+    data.send_to_db()
+    return True
 
 
-if __name__ == '__main__':
+def main_dask():
+    """
+    x = main_dask()
+    x.compute()
+    :return:
+    """
     flags = []
-    for i in range(40):
+    for i in range(50):
         data1 = One(str(i))
         x = delayed(data1.send_to_db)()
         flags.append(x)
 
-    ok = delayed(all)(flags)
+    return delayed(all)(flags)
 
+
+def main_threadpool():
+    e = ThreadPoolExecutor()
+    return all(list(e.map(to_db, range(50))))
+
+
+def main_processpool():
+    e = ProcessPoolExecutor()
+    return all(list(e.map(to_db, range(50))))

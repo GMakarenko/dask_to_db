@@ -17,7 +17,8 @@ class DBPreProcess:
 
     def send_to_db(self, if_exist="replace"):
         self.data_set.to_sql(name=self.TABLE_ALIAS, con=self.db_engine, schema=self.DB_ALIAS,
-                             if_exists=if_exist, chunksize=5000, index=False)
+                                 if_exists=if_exist, chunksize=5000, index=False)
+
         print("DONE", self.TABLE_ALIAS)
         return True
 
